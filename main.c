@@ -1,11 +1,26 @@
 #include <curses.h>
 #include <stdlib.h>
 #include <time.h>
+#include <math.h>
 
 #define Y_SIZE 16
 #define X_SIZE 64
 
 char screen[Y_SIZE][X_SIZE];
+
+void draw_line_pixels(int y0 ,int x0, int y1, int x1){
+    // a'la bresenham algorithm
+    int dy = y1 - y0;
+    int dx = x1 - x0;
+    float step = fmax(abs(dy), abs(dx));
+    if (step != 0) {
+        float step_y = dy / step;
+        float step_x = dx / step;
+        for (int i; i < step+1; i++){
+            mvaddstr(roundf(y0 + i * step_y), roundf(x0 + i * step_x), "&");
+        }
+    }
+}
 
 int main() {
     WINDOW* win = initscr();
@@ -22,8 +37,9 @@ int main() {
 
     while (true) {
         erase();
-        mvaddstr(a_y, a_x, "*");
-        mvaddstr(b_y, b_x, "*");
+        draw_line_pixels(a_y, a_x, b_y, b_x);
+        mvaddstr(a_y, a_x, "&");
+        mvaddstr(b_y, b_x, "&");
         refresh();
     }
 
