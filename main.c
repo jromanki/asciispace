@@ -187,7 +187,6 @@ int main() {
     float angle = 0;
 
     while (true) {
-
         int pressed = wgetch(win);
         angle = 0;
         if (pressed != ERR) {
