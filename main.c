@@ -176,6 +176,17 @@ void draw_shape(Shape* s) {
     }
 }
 
+bool check_loose(Shape* s) {
+    for (int i = 0; i < s->vertex_count; i++){
+        if (s->vertices[i].x <= 0 || s->vertices[i].x >= X_SIZE/2){
+            return true;
+        } else if (s->vertices[i].y <= 0 || s->vertices[i].y >= Y_SIZE){
+            return true;
+        }
+    }
+    return false;
+}
+
 int main() {
     WINDOW* win = initscr();
     curs_set(0);
@@ -194,18 +205,18 @@ int main() {
 
     int x_start = X_SIZE / 2 / 2;
     int y_start = Y_SIZE / 2;
-
     translate(&ship, (float) x_start, (float) y_start);
     float dx = 0;
     float dy = 0;
     float angular_vel = 0;
+    bool playing = true;
 
-    while (true) {
+    while (playing) {
         int pressed = wgetch(win);
 
         if (pressed != ERR) {
             if (pressed == KEY_LEFT){
-                if (angular_vel > -ANGULAR_LIMIT) angular_vel -= 0.01;
+                if (angular_vel > - ANGULAR_LIMIT) angular_vel -= 0.01;
             }
             if (pressed == KEY_RIGHT) {
                 if (angular_vel < ANGULAR_LIMIT) angular_vel += 0.01;
@@ -230,9 +241,13 @@ int main() {
         draw_shape(&ship);
         draw_borders(0, 0, Y_SIZE, X_SIZE);
         refresh();
+        if (check_loose(&ship) == true){
+            playing = false;
+        }
         usleep(1000000 / FPS);
     }
 
+    while (true){}
     endwin();
 
     return 0;
