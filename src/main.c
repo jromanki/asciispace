@@ -87,10 +87,6 @@ int main() {
                 dx += ship.facing.x * SPEED_FACTOR;
                 dy += ship.facing.y * SPEED_FACTOR;
             }
-
-            // flush repeated keypresses of the same key
-            int ch;
-            while ((ch = wgetch(win)) == pressed);
         }
 
         float current_x = ship.center.x;
