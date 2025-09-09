@@ -146,8 +146,8 @@ void rotate(Shape* s, float theta){
     for (int i = 0; i < s->vertex_count; i++){
         float x = s->vertices[i].x;
         float y = s->vertices[i].y;
-        s->vertices[i].x = x*cos(theta) - y*sin(theta);
-        s->vertices[i].y = x*sin(theta) + y*cos(theta);
+        s->vertices[i].x = x * cos(theta) - y * sin(theta);
+        s->vertices[i].y = x * sin(theta) + y * cos(theta);
     }
 }
 
@@ -173,7 +173,7 @@ int main() {
     Shape ship;
     ship.vertex_count = 3;
     ship.vertices = malloc(ship.vertex_count * sizeof(Point));
-    ship.vertices[0] = (Point){0, -10};
+    ship.vertices[0] = (Point){0, -20};
     ship.vertices[1] = (Point){12, 5};
     ship.vertices[2] = (Point){-12, 5};
     ship.center = (Point){0, 0};
@@ -187,8 +187,6 @@ int main() {
     float angle = 0;
 
     while (true) {
-        float current_x = ship.center.x;
-        float current_y = ship.center.y;
 
         int pressed = wgetch(win);
         angle = 0;
@@ -201,6 +199,8 @@ int main() {
             while ((ch = wgetch(win)) == pressed);
         }
 
+        float current_x = ship.center.x;
+        float current_y = ship.center.y;
         translate(&ship, -current_x, -current_y);
         rotate(&ship, angle);
         translate(&ship, current_x, current_y);
