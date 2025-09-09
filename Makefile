@@ -1,8 +1,9 @@
-CFLAGS = -Wall
+CFLAGS = -Wall -Iinclude
+SRC = $(wildcard src/*.c)
 
-app: main.c
-	@echo "Compaling..."
-	gcc $(CFLAGS) main.c -lncurses -lm -o app 
+app: $(SRC)
+	@echo "Compiling..."
+	gcc $(CFLAGS) $(SRC) -lncurses -lm -o app
 
 run: app
 	@echo "Running..."
@@ -10,4 +11,4 @@ run: app
 
 clean:
 	@echo "Removing compiled files"
-	rm app
+	rm -f app
