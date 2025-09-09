@@ -9,10 +9,15 @@
 #define Y_SIZE 46
 #define X_SIZE 180
 
-char screen[Y_SIZE][X_SIZE];
 const char GRAYSCALE[] = {
     '@', '%', '#', '*', '+', '=', '-', ':', '.', ' ', '\0'
 };
+
+char opacity(float opacity){
+    int scale_size = sizeof(GRAYSCALE) - 1;
+    int sign_num = roundf((1 - opacity) * scale_size);
+    return GRAYSCALE[sign_num];
+}
 
 void draw_line_pixels(int y0 ,int x0, int y1, int x1, char sign){
     // a'la bresenham algorithm
@@ -28,6 +33,64 @@ void draw_line_pixels(int y0 ,int x0, int y1, int x1, char sign){
                 roundf(x0 + i * step_x),
                 sign
             );
+        }
+    }
+}
+
+void draw_line_aliased(float y0 ,float x0, float y1, float x1){
+    if (fabsf(y1 - y0) < fabsf(x1 - x0)) {
+        if (x1 < x0){
+            float temp;
+            temp = x0;
+            x0 = x1;
+            x1 = temp;
+            temp = y0;
+            y0 = y1;
+            y1 = temp;
+        }
+        float dx = x1 - x0;
+        float dy = y1 - y0;
+        float m;
+        if (dx != 0){
+            m = dy/dx;
+        } else {
+            m = 1;
+        }
+        for (int i = 0; i < (int) dx+1; i++){
+            float x = x0 + i;
+            float y = y0 + i * m;
+            int ix = (int) x;
+            int iy = (int) y;
+            float dist = y - iy;
+            mvaddch(iy, ix, opacity(1-dist));
+            mvaddch(iy + 1, ix, opacity(dist));
+        }
+    } else {
+        if (y1 < y0){
+            float temp;
+            temp = x0;
+            x0 = x1;
+            x1 = temp;
+            temp = y0;
+            y0 = y1;
+            y1 = temp;
+        }
+        float dx = x1 - x0;
+        float dy = y1 - y0;
+        float m;
+        if (dy != 0){
+            m = dx/dy;
+        } else {
+            m = 1;
+        }
+        for (int i = 0; i < (int) dy+1; i++){
+            float x = x0 + i * m;
+            float y = y0 + i;
+            int ix = (int) x;
+            int iy = (int) y;
+            float dist = x - ix;
+            mvaddch(iy, ix, opacity(1-dist));
+            mvaddch(iy, ix + 1, opacity(dist));
         }
     }
 }
@@ -56,7 +119,8 @@ int main() {
     while (true) {
         erase();
 
-        draw_line_pixels(a_y, a_x, b_y, b_x, '*');
+        // draw_line_pixels(a_y, a_x, b_y, b_x, '*');
+        draw_line_aliased(a_y, a_x, b_y, b_x);
         mvaddch(a_y, a_x, '&');
         mvaddch(b_y, b_x, '&');
         draw_borders(0, 0, Y_SIZE, X_SIZE);
