@@ -4,9 +4,6 @@
 #include <math.h>
 #include <unistd.h>
 
-// #define Y_SIZE 16
-// #define X_SIZE 64
-
 #define Y_SIZE 46
 #define X_SIZE 180
 
@@ -14,6 +11,17 @@
 //     '$', 'B', 'P', '%', '#', 'z', 'c', 'r', '<',
 //     '*', '=', '+', '~', ':', ',', '`', '\0'
 // };
+
+typedef struct {
+    float x;
+    float y;
+} Point;
+
+typedef struct {
+    Point* vertices;
+    int vertex_count;
+    Point center;
+} Shape;
 
 const char GRAYSCALE[] = {
     '`', '.', '-', '\'', ':', '_', ',', '^', '=', ';', '>', '<', '+', '!', 'r', 'c', '*',
@@ -90,9 +98,8 @@ void draw_line_aliased(float y0 ,float x0, float y1, float x1){
     } else {
         if (y1 < y0){
             float temp;
-            temp = x0; x0 = x1; x1 = temp; temp = y0;
-            y0 = y1;
-            y1 = temp;
+            temp = x0; x0 = x1; x1 = temp;
+            temp = y0; y0 = y1; y1 = temp;
         }
         float dx = x1 - x0;
         float dy = y1 - y0;
@@ -131,12 +138,31 @@ void draw_borders(int y_0 ,int x_0, int y_max, int x_max) {
     
 }
 
+Shape translate(Shape s, float dx, float dy){
+    for (int i = 0; i < s.vertex_count; i++){
+        s.vertices[i].x += dx;
+        s.vertices[i].y += dy;
+    }
+    s.center.x += dx;
+    s.center.y += dy;
+    return s;
+}
+
 int main() {
     WINDOW* win = initscr();
     curs_set(0);
     keypad(win, true);
     nodelay(win, true);
     srand(time(NULL)); // seed the rng with current time
+
+    Shape ship;
+    ship.vertex_count = 3;
+    ship.vertices = malloc(ship.vertex_count * sizeof(Point));
+    ship.vertices[0] = (Point){0, -10};
+    ship.vertices[1] = (Point){12, 5};
+    ship.vertices[2] = (Point){-12, 5};
+    ship.center = (Point){0, 0};
+
     
     int a_y = rand() % Y_SIZE;
     int a_x = rand() % X_SIZE;
@@ -144,11 +170,19 @@ int main() {
     int b_y = rand() % Y_SIZE;
     int b_x = rand() % X_SIZE;
 
+    ship = translate(ship, (float) a_x, (float) a_y);
+
     while (true) {
         erase();
 
         // draw_line_pixels(a_y, a_x, b_y, b_x, '*');
-        draw_line_aliased(a_y, a_x, b_y, b_x);
+        // draw_line_aliased(a_y, a_x, b_y, b_x);
+        draw_line_aliased(ship.vertices[0].y, ship.vertices[0].x,
+            ship.vertices[1].y,ship.vertices[1].x);
+        draw_line_aliased(ship.vertices[1].y, ship.vertices[1].x,
+            ship.vertices[2].y,ship.vertices[2].x);
+        draw_line_aliased(ship.vertices[2].y, ship.vertices[2].x,
+            ship.vertices[0].y,ship.vertices[0].x);
         // mvaddch(a_y, a_x, '&');
         // mvaddch(b_y, b_x, '&');
         draw_borders(0, 0, Y_SIZE, X_SIZE);
