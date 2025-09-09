@@ -7,11 +7,6 @@
 #define Y_SIZE 46
 #define X_SIZE 180
 
-// const char GRAYSCALE[] = {
-//     '$', 'B', 'P', '%', '#', 'z', 'c', 'r', '<',
-//     '*', '=', '+', '~', ':', ',', '`', '\0'
-// };
-
 typedef struct {
     float x;
     float y;
@@ -138,14 +133,34 @@ void draw_borders(int y_0 ,int x_0, int y_max, int x_max) {
     
 }
 
-Shape translate(Shape s, float dx, float dy){
-    for (int i = 0; i < s.vertex_count; i++){
-        s.vertices[i].x += dx;
-        s.vertices[i].y += dy;
+void translate(Shape* s, float x, float y){
+    for (int i = 0; i < s->vertex_count; i++){
+        s->vertices[i].x += x;
+        s->vertices[i].y += y;
     }
-    s.center.x += dx;
-    s.center.y += dy;
-    return s;
+    s->center.x += x;
+    s->center.y += y;
+}
+
+void rotate(Shape* s, float theta){
+    for (int i = 0; i < s->vertex_count; i++){
+        float x = s->vertices[i].x;
+        float y = s->vertices[i].y;
+        s->vertices[i].x = x*cos(theta) - y*sin(theta);
+        s->vertices[i].y = x*sin(theta) + y*cos(theta);
+    }
+}
+
+void draw_shape(Shape* s) {
+    for (int i = 0; i < s->vertex_count; i++){
+        if (i != s->vertex_count - 1){
+            draw_line_aliased(s->vertices[i].y, s->vertices[i].x,
+                s->vertices[i+1].y, s->vertices[i+1].x);
+            } else {
+                draw_line_aliased(s->vertices[i].y, s->vertices[i].x,
+                s->vertices[0].y, s->vertices[0].x);
+            }
+    }
 }
 
 int main() {
@@ -163,33 +178,38 @@ int main() {
     ship.vertices[2] = (Point){-12, 5};
     ship.center = (Point){0, 0};
 
-    
-    int a_y = rand() % Y_SIZE;
-    int a_x = rand() % X_SIZE;
+    int x_start = X_SIZE / 2;
+    int y_start = Y_SIZE / 2;
 
-    int b_y = rand() % Y_SIZE;
-    int b_x = rand() % X_SIZE;
-
-    ship = translate(ship, (float) a_x, (float) a_y);
+    translate(&ship, (float) x_start, (float) y_start);
+    float dx = 0;
+    float dy = 0;
+    float angle = 0;
 
     while (true) {
+        float current_x = ship.center.x;
+        float current_y = ship.center.y;
+
+        int pressed = wgetch(win);
+        angle = 0;
+        if (pressed != ERR) {
+            if (pressed == KEY_LEFT) angle = -0.1;
+            if (pressed == KEY_RIGHT) angle = 0.1;
+
+            // flush repeated keypresses of the same key
+            int ch;
+            while ((ch = wgetch(win)) == pressed);
+        }
+
+        translate(&ship, -current_x, -current_y);
+        rotate(&ship, angle);
+        translate(&ship, current_x, current_y);
+
         erase();
-
-        // draw_line_pixels(a_y, a_x, b_y, b_x, '*');
-        // draw_line_aliased(a_y, a_x, b_y, b_x);
-        draw_line_aliased(ship.vertices[0].y, ship.vertices[0].x,
-            ship.vertices[1].y,ship.vertices[1].x);
-        draw_line_aliased(ship.vertices[1].y, ship.vertices[1].x,
-            ship.vertices[2].y,ship.vertices[2].x);
-        draw_line_aliased(ship.vertices[2].y, ship.vertices[2].x,
-            ship.vertices[0].y,ship.vertices[0].x);
-        // mvaddch(a_y, a_x, '&');
-        // mvaddch(b_y, b_x, '&');
+        draw_shape(&ship);
         draw_borders(0, 0, Y_SIZE, X_SIZE);
-
-        b_x += 1;
         refresh();
-        usleep(50000);
+        usleep(10000);
     }
 
     endwin();
