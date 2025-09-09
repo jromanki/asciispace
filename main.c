@@ -6,6 +6,9 @@
 
 #define Y_SIZE 46
 #define X_SIZE 180
+#define FPS 60
+#define SPEED_FACTOR 0.14f
+#define ANGULAR_LIMIT 0.1f
 
 typedef struct {
     float x;
@@ -13,9 +16,15 @@ typedef struct {
 } Point;
 
 typedef struct {
+    float x;
+    float y;
+} Vector;
+
+typedef struct {
     Point* vertices;
     int vertex_count;
     Point center;
+    Vector facing;
 } Shape;
 
 const char GRAYSCALE[] = {
@@ -149,16 +158,20 @@ void rotate(Shape* s, float theta){
         s->vertices[i].x = x * cos(theta) - y * sin(theta);
         s->vertices[i].y = x * sin(theta) + y * cos(theta);
     }
+    float x_facing = s->facing.x;
+    float y_facing = s->facing.y;
+    s->facing.x = x_facing * cos(theta) - y_facing * sin(theta);
+    s->facing.y = x_facing * sin(theta) + y_facing * cos(theta);
 }
 
 void draw_shape(Shape* s) {
     for (int i = 0; i < s->vertex_count; i++){
         if (i != s->vertex_count - 1){
-            draw_line_aliased(s->vertices[i].y, s->vertices[i].x,
-                s->vertices[i+1].y, s->vertices[i+1].x);
+            draw_line_aliased(s->vertices[i].y, 2*s->vertices[i].x,
+                s->vertices[i+1].y, 2*s->vertices[i+1].x);
             } else {
-                draw_line_aliased(s->vertices[i].y, s->vertices[i].x,
-                s->vertices[0].y, s->vertices[0].x);
+                draw_line_aliased(s->vertices[i].y, 2*s->vertices[i].x,
+                s->vertices[0].y, 2*s->vertices[0].x);
             }
     }
 }
@@ -173,25 +186,34 @@ int main() {
     Shape ship;
     ship.vertex_count = 3;
     ship.vertices = malloc(ship.vertex_count * sizeof(Point));
-    ship.vertices[0] = (Point){0, -20};
-    ship.vertices[1] = (Point){12, 5};
-    ship.vertices[2] = (Point){-12, 5};
+    ship.vertices[0] = (Point){0, -8};
+    ship.vertices[1] = (Point){3, 2};
+    ship.vertices[2] = (Point){-3, 2};
     ship.center = (Point){0, 0};
+    ship.facing = (Vector){0, -1};
 
-    int x_start = X_SIZE / 2;
+    int x_start = X_SIZE / 2 / 2;
     int y_start = Y_SIZE / 2;
 
     translate(&ship, (float) x_start, (float) y_start);
     float dx = 0;
     float dy = 0;
-    float angle = 0;
+    float angular_vel = 0;
 
     while (true) {
         int pressed = wgetch(win);
-        angle = 0;
+
         if (pressed != ERR) {
-            if (pressed == KEY_LEFT) angle = -0.1;
-            if (pressed == KEY_RIGHT) angle = 0.1;
+            if (pressed == KEY_LEFT){
+                if (angular_vel > -ANGULAR_LIMIT) angular_vel -= 0.01;
+            }
+            if (pressed == KEY_RIGHT) {
+                if (angular_vel < ANGULAR_LIMIT) angular_vel += 0.01;
+            }
+            if (pressed == KEY_UP){
+                dx += ship.facing.x * SPEED_FACTOR;
+                dy += ship.facing.y * SPEED_FACTOR;
+            }
 
             // flush repeated keypresses of the same key
             int ch;
@@ -201,14 +223,14 @@ int main() {
         float current_x = ship.center.x;
         float current_y = ship.center.y;
         translate(&ship, -current_x, -current_y);
-        rotate(&ship, angle);
-        translate(&ship, current_x, current_y);
+        rotate(&ship, angular_vel);
+        translate(&ship, current_x + dx, current_y + dy);
 
         erase();
         draw_shape(&ship);
         draw_borders(0, 0, Y_SIZE, X_SIZE);
         refresh();
-        usleep(10000);
+        usleep(1000000 / FPS);
     }
 
     endwin();
