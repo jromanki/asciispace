@@ -9,17 +9,15 @@
 #include "draw_shapes.h"
 #include "movement.h"
 
-#define Y_SIZE 46
-#define X_SIZE 180
 #define FPS 60
 #define SPEED_FACTOR 0.14f
 #define ANGULAR_LIMIT 0.1f
 
-bool check_loose(Shape* s) {
+bool check_loose(Shape* s, int x_size, int y_size) {
     for (int i = 0; i < s->vertex_count; i++){
-        if (s->vertices[i].x <= 0 || s->vertices[i].x >= X_SIZE/2){
+        if (s->vertices[i].x <= 0 || s->vertices[i].x >= x_size/2){
             return true;
-        } else if (s->vertices[i].y <= 0 || s->vertices[i].y >= Y_SIZE){
+        } else if (s->vertices[i].y <= 0 || s->vertices[i].y >= y_size){
             return true;
         }
     }
@@ -27,7 +25,10 @@ bool check_loose(Shape* s) {
 }
 
 int main() {
+    int y_size; int x_size;
     WINDOW* win = initscr();
+    getmaxyx(win, y_size, x_size);
+    x_size = x_size - 1; y_size = y_size - 1;
     curs_set(0);
     keypad(win, true);
     nodelay(win, true);
@@ -42,8 +43,8 @@ int main() {
     ship.center = (Point){0, 0};
     ship.facing = (Vector){0, -1};
 
-    int x_start = X_SIZE / 2 / 2;
-    int y_start = Y_SIZE / 2;
+    int x_start = x_size / 2 / 2;
+    int y_start = y_size / 2;
     translate(&ship, (float) x_start, (float) y_start);
     float dx = 0;
     float dy = 0;
@@ -74,11 +75,14 @@ int main() {
 
         erase();
         draw_shape(&ship);
-        draw_borders(0, 0, Y_SIZE, X_SIZE);
+        draw_borders(0, 0, y_size, x_size);
+        
         refresh();
-        if (check_loose(&ship) == true){
+
+        if (check_loose(&ship, x_size, y_size) == true){
             playing = false;
         }
+
         usleep(1000000 / FPS);
     }
 
