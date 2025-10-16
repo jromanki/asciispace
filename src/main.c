@@ -10,8 +10,12 @@
 #include "movement.h"
 
 #define FPS 60
-#define SPEED_FACTOR 0.14f
+#define SPEED_FACTOR 0.07f
+#define ANGULAR_FACTOR 0.01f
 #define ANGULAR_LIMIT 0.1f
+#define ANG_VAR_GAIN 0.05f
+#define KEY_DELAY 0.2
+#define SHIP_SCALE 1.2f
 
 bool check_border_collision(Shape* s, int x_size, int y_size) {
     for (int i = 0; i < s->vertex_count; i++){
@@ -22,6 +26,32 @@ bool check_border_collision(Shape* s, int x_size, int y_size) {
         }
     }
     return false;
+}
+
+void debug_print_int(int var){
+    erase();
+    printw("current time: %d\n", var);
+    refresh();              // Update the actual screen
+    while(1){
+        if (getch() == 'q'){
+                break;
+        }
+    }
+}
+
+float random_float(void) {
+    float r = (float)rand() / (float)RAND_MAX;
+    return r;
+}
+
+float get_angualar_variation(void){
+    float r = random_float();
+    return (r - 0.5) * ANGULAR_LIMIT * ANG_VAR_GAIN;
+}
+static double now_seconds(void) {
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return ts.tv_sec + ts.tv_nsec * 1e-9;
 }
 
 int main() {
@@ -40,9 +70,10 @@ int main() {
         Shape ship;
         ship.vertex_count = 3;
         ship.vertices = malloc(ship.vertex_count * sizeof(Point));
-        ship.vertices[0] = (Point){0, -8};
-        ship.vertices[1] = (Point){3, 2};
-        ship.vertices[2] = (Point){-3, 2};
+        ship.vertices[0] = (Point){0, -6};
+        ship.vertices[1] = (Point){2, 1};
+        ship.vertices[2] = (Point){-2, 1};
+        scale_shape(&ship, SHIP_SCALE);
         ship.center = (Point){0, 0};
         ship.facing = (Vector){0, -1};
 
@@ -51,23 +82,28 @@ int main() {
         float dy = 0;
         float angular_vel = 0;
         bool playing = true;
+        double last_press = now_seconds();
 
         while (playing) {
+            double current_time = now_seconds();
             int pressed = wgetch(win);
 
             if (pressed != ERR) {
-                if (pressed == KEY_LEFT){
-                    if (angular_vel > - ANGULAR_LIMIT) angular_vel -= 0.01;
-                }
-                if (pressed == KEY_RIGHT) {
-                    if (angular_vel < ANGULAR_LIMIT) angular_vel += 0.01;
-                }
-                if (pressed == KEY_UP){
-                    dx += ship.facing.x * SPEED_FACTOR;
-                    dy += ship.facing.y * SPEED_FACTOR;
-                }
-                if (pressed == 'q'){
-                    playing = false;
+                if ((now_seconds() - last_press) > KEY_DELAY) {
+                    last_press = current_time;
+                    if (pressed == KEY_LEFT){
+                        if (angular_vel > - ANGULAR_LIMIT) angular_vel -= ANGULAR_FACTOR + get_angualar_variation();
+                    }
+                    if (pressed == KEY_RIGHT) {
+                        if (angular_vel < ANGULAR_LIMIT) angular_vel += ANGULAR_FACTOR + get_angualar_variation();
+                    }
+                    if (pressed == KEY_UP){
+                        dx += ship.facing.x * SPEED_FACTOR;
+                        dy += ship.facing.y * SPEED_FACTOR;
+                    }
+                    if (pressed == 'q'){
+                        playing = false;
+                    }
                 }
             }
 
@@ -78,6 +114,7 @@ int main() {
             translate(&ship, current_x + dx, current_y + dy);
 
             erase();
+            draw_stars(x_size, y_size);
             draw_shape(&ship);
             draw_borders(0, 0, y_size, x_size);
             

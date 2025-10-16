@@ -92,6 +92,13 @@ void draw_line_aliased(float y0 ,float x0, float y1, float x1){
     }
 }
 
+void scale_shape(Shape* s, float scale) {
+    for (int i = 0; i < s->vertex_count; i++){
+        s->vertices[i].x = s->vertices[i].x * scale;
+        s->vertices[i].y = s->vertices[i].y * scale;
+    }
+}
+
 void draw_shape(Shape* s) {
     for (int i = 0; i < s->vertex_count; i++){
         if (i != s->vertex_count - 1){

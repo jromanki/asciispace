@@ -34,3 +34,8 @@ void you_lost_text(int x_size, int y_size){
     mvaddstr(y_size/2-1, x_size/2-strlen(loose_str)/2, loose_str);
     mvaddstr(y_size/2, x_size/2-strlen(again_str)/2, again_str);
 }
+
+void draw_stars(int x_size, int y_size){
+    int x = rand() % x_size; int y = rand() % y_size;
+    mvaddch(y, x, '*');
+}

@@ -4,5 +4,6 @@
 void draw_line_pixels(int y0 ,int x0, int y1, int x1, char sign);
 void draw_borders(int y_0 ,int x_0, int y_max, int x_max);
 void you_lost_text(int x_size, int y_size);
+void draw_stars(int x_size, int y_size);
 
 #endif
