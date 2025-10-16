@@ -16,7 +16,7 @@
 #define ANG_VAR_GAIN 0.05f
 #define KEY_DELAY 0.2
 #define SHIP_SCALE 1.2f
-#define STAR_AMOUNT 20
+#define STARS_PER_CHAR 0.05f
 
 bool check_border_collision(Shape* s, int x_size, int y_size) {
     for (int i = 0; i < s->vertex_count; i++){
@@ -32,7 +32,7 @@ bool check_border_collision(Shape* s, int x_size, int y_size) {
 void debug_print_int(int var){
     erase();
     printw("current time: %d\n", var);
-    refresh();              // Update the actual screen
+    refresh();
     while(1){
         if (getch() == 'q'){
                 break;
@@ -58,6 +58,7 @@ static double now_seconds(void) {
 int main() {
     WINDOW* win = initscr();
     int y_size; int x_size;
+    int star_amount = (int)((float)x_size * (float)y_size * STARS_PER_CHAR);
     getmaxyx(win, y_size, x_size);
     x_size = x_size - 1; y_size = y_size - 1;
     curs_set(0);
@@ -77,7 +78,7 @@ int main() {
         scale_shape(&ship, SHIP_SCALE);
         ship.center = (Point){0, 0};
         ship.facing = (Vector){0, -1};
-        Point* stars_arr_ptr = stars_init(x_size, y_size, STAR_AMOUNT);
+        Point* stars_arr_ptr = stars_init(x_size, y_size, star_amount);
 
         translate(&ship, (float) x_start, (float) y_start);
         float dx = 0;
@@ -116,7 +117,7 @@ int main() {
             translate(&ship, current_x + dx, current_y + dy);
 
             erase();
-            draw_stars(stars_arr_ptr, STAR_AMOUNT);
+            draw_stars(stars_arr_ptr, star_amount);
             draw_shape(&ship);
             draw_borders(0, 0, y_size, x_size);
             
