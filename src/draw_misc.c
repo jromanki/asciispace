@@ -3,6 +3,8 @@
 #include <curses.h>
 #include <string.h>
 
+#include "shape.h"
+
 void draw_line_pixels(int y0 ,int x0, int y1, int x1, char sign){
     // a'la bresenham algorithm
     int dy = y1 - y0;
@@ -35,7 +37,18 @@ void you_lost_text(int x_size, int y_size){
     mvaddstr(y_size/2, x_size/2-strlen(again_str)/2, again_str);
 }
 
-void draw_stars(int x_size, int y_size){
-    int x = rand() % x_size; int y = rand() % y_size;
-    mvaddch(y, x, '*');
+Point* stars_init(int x_size, int y_size, int star_amount){
+    Point* star_arr = malloc(sizeof(Point) * star_amount);
+    if (!star_arr) return NULL;
+    for (int i = 0; i < star_amount; i++){
+        star_arr[i].x = rand() % x_size;
+        star_arr[i].y = rand() % y_size;
+    }
+    return star_arr;
+}
+
+void draw_stars(Point* star_arr, int star_amount){
+    for (int i = 0; i < star_amount; i++){
+        mvaddch(star_arr[i].y, star_arr[i].x, '*');
+    }
 }

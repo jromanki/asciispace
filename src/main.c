@@ -16,6 +16,7 @@
 #define ANG_VAR_GAIN 0.05f
 #define KEY_DELAY 0.2
 #define SHIP_SCALE 1.2f
+#define STAR_AMOUNT 20
 
 bool check_border_collision(Shape* s, int x_size, int y_size) {
     for (int i = 0; i < s->vertex_count; i++){
@@ -76,6 +77,7 @@ int main() {
         scale_shape(&ship, SHIP_SCALE);
         ship.center = (Point){0, 0};
         ship.facing = (Vector){0, -1};
+        Point* stars_arr_ptr = stars_init(x_size, y_size, STAR_AMOUNT);
 
         translate(&ship, (float) x_start, (float) y_start);
         float dx = 0;
@@ -114,7 +116,7 @@ int main() {
             translate(&ship, current_x + dx, current_y + dy);
 
             erase();
-            draw_stars(x_size, y_size);
+            draw_stars(stars_arr_ptr, STAR_AMOUNT);
             draw_shape(&ship);
             draw_borders(0, 0, y_size, x_size);
             
